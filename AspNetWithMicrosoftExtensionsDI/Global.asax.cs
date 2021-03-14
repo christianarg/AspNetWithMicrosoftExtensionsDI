@@ -7,6 +7,8 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using Unity;
+using Unity.Microsoft.DependencyInjection;
 // https://gist.github.com/davidfowl/563a602936426a18f67cd77088574e61
 [assembly: PreApplicationStartMethod(typeof(AspNetWithMicrosoftExtensionsDI.MvcApplication), "InitModule")]
 
@@ -21,9 +23,10 @@ namespace AspNetWithMicrosoftExtensionsDI
 
         protected void Application_Start()
         {
+            var unityContainer = new UnityContainer();  
             var services = new ServiceCollection();
             ConfigureServices(services);
-            ServiceScopeModule.SetServiceProvider(services.BuildServiceProvider());
+            ServiceScopeModule.SetServiceProvider(services.BuildServiceProvider(unityContainer));
 
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
@@ -44,7 +47,7 @@ namespace AspNetWithMicrosoftExtensionsDI
 
     internal class ServiceScopeModule : IHttpModule
     {
-        private static ServiceProvider _serviceProvider;
+        private static IServiceProvider _serviceProvider;
 
         public void Dispose()
         {
@@ -72,7 +75,7 @@ namespace AspNetWithMicrosoftExtensionsDI
             context.Items[typeof(IServiceScope)] = _serviceProvider.CreateScope();
         }
 
-        public static void SetServiceProvider(ServiceProvider serviceProvider)
+        public static void SetServiceProvider(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }

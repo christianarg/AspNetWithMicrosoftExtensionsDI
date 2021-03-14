@@ -5,25 +5,31 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using Unity;
 
 namespace AspNetWithMicrosoftExtensionsDI.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IHttpClientFactory httpClientFactory;
-        private readonly IMyInterface myInterface;
+        [Dependency]
+        public IHttpClientFactory HttpClientFactory { get; set; }
+        [Dependency]
+        public IMyInterface MyInterface { get; set; }
 
-        public HomeController(IHttpClientFactory httpClientFactory, IMyInterface myInterface)
-        {
-            this.httpClientFactory = httpClientFactory;
-            this.myInterface = myInterface;
-        }
+        //private readonly IHttpClientFactory httpClientFactory;
+        //private readonly IMyInterface myInterface;
+
+        //public HomeController(IHttpClientFactory httpClientFactory, IMyInterface myInterface)
+        //{
+        //    this.httpClientFactory = httpClientFactory;
+        //    this.myInterface = myInterface;
+        //}
 
         public async Task<ActionResult> Index()
         {
-            var response = await httpClientFactory.CreateClient().GetAsync("https://www.google.es");
+            var response = await HttpClientFactory.CreateClient().GetAsync("https://www.google.es");
             var content = await response.Content.ReadAsStringAsync();
-            ViewBag.Message = myInterface.Foo();
+            ViewBag.Message = MyInterface.Foo();
             ViewBag.Content = content;
             return View();
         }
