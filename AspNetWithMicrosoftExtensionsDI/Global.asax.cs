@@ -35,6 +35,7 @@ namespace AspNetWithMicrosoftExtensionsDI
 
         private static void ConfigureServices(ServiceCollection services)
         {
+            services.AddHttpClient();
             services.AddTransient<HomeController>();
             services.AddTransient<IMyInterface, MyClass>();
         }
