@@ -23,9 +23,10 @@ namespace AspNetWithMicrosoftExtensionsDI
 
         protected void Application_Start()
         {
-            var unityContainer = new UnityContainer();  
+            var unityContainer = new UnityContainer();
             var services = new ServiceCollection();
             ConfigureServices(services);
+            ConfigureContainer(unityContainer);
             ServiceScopeModule.SetServiceProvider(services.BuildServiceProvider(unityContainer));
 
             AreaRegistration.RegisterAllAreas();
@@ -40,7 +41,12 @@ namespace AspNetWithMicrosoftExtensionsDI
         {
             services.AddHttpClient();
             services.AddTransient<HomeController>();
-            services.AddTransient<IMyInterface, MyClass>();
+            //services.AddTransient<IMyInterface, MyClass>();
+        }
+
+        private void ConfigureContainer(UnityContainer unityContainer)
+        {
+            unityContainer.RegisterType<IMyInterface, MyClass>();
         }
     }
 
