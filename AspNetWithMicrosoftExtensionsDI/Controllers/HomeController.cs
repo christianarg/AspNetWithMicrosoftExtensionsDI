@@ -15,7 +15,8 @@ namespace AspNetWithMicrosoftExtensionsDI.Controllers
         public IHttpClientFactory HttpClientFactory { get; set; }
         [Dependency]
         public IMyInterface MyInterface { get; set; }
-
+        [Dependency("paco")]
+        public IMyInterface MyInterfaceNamed { get; set; }
         //private readonly IHttpClientFactory httpClientFactory;
         //private readonly IMyInterface myInterface;
 
@@ -30,6 +31,7 @@ namespace AspNetWithMicrosoftExtensionsDI.Controllers
             var response = await HttpClientFactory.CreateClient().GetAsync("https://www.google.es");
             var content = await response.Content.ReadAsStringAsync();
             ViewBag.Message = MyInterface.Foo();
+            ViewBag.Message2 = MyInterfaceNamed.Foo();
             ViewBag.Content = content;
             return View();
         }

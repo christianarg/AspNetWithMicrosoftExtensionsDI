@@ -48,6 +48,7 @@ namespace AspNetWithMicrosoftExtensionsDI
         private void ConfigureContainer(UnityContainer unityContainer)
         {
             unityContainer.RegisterType<IMyInterface, MyClass>();
+            unityContainer.RegisterType<IMyInterface, MyClassNamed>("paco");
         }
     }
 
@@ -121,6 +122,14 @@ namespace AspNetWithMicrosoftExtensionsDI
         public string Foo()
         {
             return "Bar";
+        }
+    }
+
+    public class MyClassNamed : IMyInterface
+    {
+        public string Foo()
+        {
+            return "BarNamed";
         }
     }
 }
