@@ -9,40 +9,35 @@ using System.Web.Optimization;
 using System.Web.Routing;
 using Unity;
 using Unity.Microsoft.DependencyInjection;
-// https://gist.github.com/davidfowl/563a602936426a18f67cd77088574e61
-[assembly: PreApplicationStartMethod(typeof(AspNetWithMicrosoftExtensionsDI.MvcApplication), "InitModule")]
 
 namespace AspNetWithMicrosoftExtensionsDI
 {
     public class MvcApplication : System.Web.HttpApplication
     {
-        public static void InitModule()
-        {
-            RegisterModule(typeof(ServiceScopeModule));
-        }
+        public static UnityContainer Container { get; private set; }
 
         protected void Application_Start()
         {
             var unityContainer = new UnityContainer();
+            Container = unityContainer;
             var services = new ServiceCollection();
             ConfigureServices(services);
             ConfigureContainer(unityContainer);
             // No puedo estar seguro pero creo que el tema de BuildServiceProvider lo cogí de aqui https://stackoverflow.com/questions/50705817/using-unity-instead-of-asp-net-core-di-iservicecollection
-            ServiceScopeModule.SetServiceProvider(services.BuildServiceProvider(unityContainer));
+            // La "gracia" es la llamada a este BuildServiceProvider que es parte de Unity.Microsoft.DependencyInjection, que crea un serviceProvider "enlazando" el contenedor de unity y el de DI
+            services.BuildServiceProvider(unityContainer);
 
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
 
-            DependencyResolver.SetResolver(new ServiceProviderDependencyResolver());
+            DependencyResolver.SetResolver(new UnityDependencyResolver(DependencyResolver.Current));
         }
 
         private static void ConfigureServices(ServiceCollection services)
         {
             services.AddHttpClient();
-            // services.AddTransient<HomeController>(); // no se porque estaba esto :)
-            //services.AddTransient<IMyInterface, MyClass>();
         }
 
         private void ConfigureContainer(UnityContainer unityContainer)
@@ -52,63 +47,56 @@ namespace AspNetWithMicrosoftExtensionsDI
         }
     }
 
-
-    internal class ServiceScopeModule : IHttpModule
+    // <summary>
+    /// MVC biene preparado para poder aplicar DI en los controladores, 
+    /// en la construccion del los controladores llama el IDependencyResolver que podemos sobre escribir para que use nuestro IocFactory.
+    /// Unity tiene un implementacion, pero no acaba de ajustarnos a como tenemos montado el IocFactory.
+    /// Asi no es necesario sobrescivir tod0 el DefaulControllerFactory i solo modificamos la parte que nos interesa.
+    /// </summary>
+    public class UnityDependencyResolver : IDependencyResolver
     {
-        private static IServiceProvider _serviceProvider;
 
-        public void Dispose()
+        private readonly IDependencyResolver resolver;
+
+        public UnityDependencyResolver(IDependencyResolver resolver)
         {
-
+            this.resolver = resolver;
         }
 
-        public void Init(HttpApplication context)
-        {
-            context.BeginRequest += Context_BeginRequest;
-            context.EndRequest += Context_EndRequest;
-        }
-
-        private void Context_EndRequest(object sender, EventArgs e)
-        {
-            var context = ((HttpApplication)sender).Context;
-            if (context.Items[typeof(IServiceScope)] is IServiceScope scope)
-            {
-                scope.Dispose();
-            }
-        }
-
-        private void Context_BeginRequest(object sender, EventArgs e)
-        {
-            var context = ((HttpApplication)sender).Context;
-            context.Items[typeof(IServiceScope)] = _serviceProvider.CreateScope();
-        }
-
-        public static void SetServiceProvider(IServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
-        }
-    }
-
-    internal class ServiceProviderDependencyResolver : IDependencyResolver
-    {
         public object GetService(Type serviceType)
         {
-            if (HttpContext.Current?.Items[typeof(IServiceScope)] is IServiceScope scope)
+            try
             {
-                return scope.ServiceProvider.GetService(serviceType);
+                if (serviceType.IsInterface)
+                {
+                    return MvcApplication.Container.IsRegistered(serviceType)
+                        ? MvcApplication.Container.Resolve(serviceType)
+                        : resolver.GetService(serviceType);
+                }
+                return MvcApplication.Container.Resolve(serviceType);
             }
-
-            throw new InvalidOperationException("IServiceScope not provided");
+            catch
+            {
+                return resolver.GetService(serviceType);
+            }
         }
 
         public IEnumerable<object> GetServices(Type serviceType)
         {
-            if (HttpContext.Current?.Items[typeof(IServiceScope)] is IServiceScope scope)
+            try
             {
-                return scope.ServiceProvider.GetServices(serviceType);
+                if (serviceType.IsInterface)
+                {
+                    return MvcApplication.Container.IsRegistered(serviceType)
+                        ? MvcApplication.Container.ResolveAll(serviceType)
+                        : resolver.GetServices(serviceType);
+                }
+                return MvcApplication.Container.ResolveAll(serviceType);
             }
-
-            throw new InvalidOperationException("IServiceScope not provided");
+            catch
+            {
+                return resolver.GetServices(serviceType);
+            }
         }
     }
 
