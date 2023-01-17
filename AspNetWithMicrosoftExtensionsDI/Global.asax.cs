@@ -27,6 +27,7 @@ namespace AspNetWithMicrosoftExtensionsDI
             var services = new ServiceCollection();
             ConfigureServices(services);
             ConfigureContainer(unityContainer);
+            // No puedo estar seguro pero creo que el tema de BuildServiceProvider lo cogí de aqui https://stackoverflow.com/questions/50705817/using-unity-instead-of-asp-net-core-di-iservicecollection
             ServiceScopeModule.SetServiceProvider(services.BuildServiceProvider(unityContainer));
 
             AreaRegistration.RegisterAllAreas();
