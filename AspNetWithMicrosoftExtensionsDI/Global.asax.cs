@@ -40,7 +40,7 @@ namespace AspNetWithMicrosoftExtensionsDI
         private static void ConfigureServices(ServiceCollection services)
         {
             services.AddHttpClient();
-            services.AddTransient<HomeController>();
+            // services.AddTransient<HomeController>(); // no se porque estaba esto :)
             //services.AddTransient<IMyInterface, MyClass>();
         }
 
