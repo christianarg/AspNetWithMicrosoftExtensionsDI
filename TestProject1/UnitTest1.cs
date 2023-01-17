@@ -17,7 +17,7 @@ namespace TestProject1
             var services = new ServiceCollection();
             services.AddHttpClient();
 
-            var serviceProvider = services.BuildServiceProvider(unityContainer);    // Al llamar a esto se hace la "magia". Lo que hay registrado en ServiceProvider lo registra también en Unity
+            var serviceProvider = services.BuildServiceProvider(unityContainer);    // Al llamar a esto se hace la "magia". Lo que hay registrado en ServiceProvider lo registra también en Unity y vice versa
 
             var httpClientThroughServiceProvider = serviceProvider.GetService<IHttpClientFactory>();
             Assert.IsNotNull(httpClientThroughServiceProvider);
@@ -25,7 +25,14 @@ namespace TestProject1
             var httpClientThroughUnity = unityContainer.Resolve<IHttpClientFactory>();
             Assert.IsNotNull(httpClientThroughUnity);
 
+            var myInterfaceThroughServiceProvider = serviceProvider.GetService<IMyInterface>();
+            Assert.AreEqual(typeof(MyClass), myInterfaceThroughServiceProvider!.GetType());
 
+            var myInterfaceThroughUnity = unityContainer.Resolve<IMyInterface>();
+            Assert.AreEqual(typeof(MyClass), myInterfaceThroughUnity!.GetType());
+
+            var myInterfaceNamedThroughUnity = unityContainer.Resolve<IMyInterface>("paco");
+            Assert.AreEqual(typeof(MyClassNamed), myInterfaceNamedThroughUnity!.GetType());
         }
     }
 
