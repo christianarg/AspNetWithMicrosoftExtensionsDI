@@ -34,6 +34,37 @@ namespace TestProject1
             var myInterfaceNamedThroughUnity = unityContainer.Resolve<IMyInterface>("paco");
             Assert.AreEqual(typeof(MyClassNamed), myInterfaceNamedThroughUnity!.GetType());
         }
+
+        /// <summary>
+        /// Test que falla.
+        /// si creamos contender / servicecollection y después calzamos los registers, no va
+        /// </summary>
+        [TestMethod]
+        public void UnityExtensionsBuildServiceProviderAsiNovaTest()
+        {
+            var unityContainer = new UnityContainer();
+            var services = new ServiceCollection();
+            var serviceProvider = services.BuildServiceProvider(unityContainer);    // Al llamar a esto se hace la "magia". Lo que hay registrado en ServiceProvider lo registra también en Unity y vice versa
+
+            unityContainer.RegisterType<IMyInterface, MyClass>();
+            unityContainer.RegisterType<IMyInterface, MyClassNamed>("paco");
+            services.AddHttpClient();
+
+            var httpClientThroughServiceProvider = serviceProvider.GetService<IHttpClientFactory>();
+            Assert.IsNull(httpClientThroughServiceProvider);
+
+            var httpClientThroughUnity = unityContainer.Resolve<IHttpClientFactory>();
+            Assert.IsNull(httpClientThroughUnity);
+
+            var myInterfaceThroughServiceProvider = serviceProvider.GetService<IMyInterface>();
+            Assert.AreEqual(typeof(MyClass), myInterfaceThroughServiceProvider!.GetType());
+
+            var myInterfaceThroughUnity = unityContainer.Resolve<IMyInterface>();
+            Assert.AreEqual(typeof(MyClass), myInterfaceThroughUnity!.GetType());
+
+            var myInterfaceNamedThroughUnity = unityContainer.Resolve<IMyInterface>("paco");
+            Assert.AreEqual(typeof(MyClassNamed), myInterfaceNamedThroughUnity!.GetType());
+        }
     }
 
     public interface IMyInterface
