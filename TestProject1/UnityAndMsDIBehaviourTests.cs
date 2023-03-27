@@ -8,7 +8,7 @@ using Unity.Microsoft.DependencyInjection;
 namespace TestProject1
 {
     [TestClass]
-    public class UnitTest1
+    public class UnityAndMsDIBehaviourTests
     {
         [TestMethod]
         public void UnityExtensionsBuildServiceProviderTest()
