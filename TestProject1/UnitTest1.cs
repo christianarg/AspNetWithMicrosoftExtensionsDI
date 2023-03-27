@@ -53,11 +53,19 @@ namespace TestProject1
             var httpClientThroughServiceProvider = serviceProvider.GetService<IHttpClientFactory>();
             Assert.IsNull(httpClientThroughServiceProvider);
 
-            var httpClientThroughUnity = unityContainer.Resolve<IHttpClientFactory>();
-            Assert.IsNull(httpClientThroughUnity);
-
             var myInterfaceThroughServiceProvider = serviceProvider.GetService<IMyInterface>();
-            Assert.AreEqual(typeof(MyClass), myInterfaceThroughServiceProvider!.GetType());
+            Assert.AreEqual(typeof(MyClass), myInterfaceThroughServiceProvider!.GetType()); // Esto si que va
+
+            bool httpClientThroughUnityPeta = false;
+            try
+            {
+                var httpClientThroughUnity = unityContainer.Resolve<IHttpClientFactory>();
+            }
+            catch (Exception)
+            {
+                httpClientThroughUnityPeta = true;
+            }
+            Assert.IsTrue(httpClientThroughUnityPeta);
 
             var myInterfaceThroughUnity = unityContainer.Resolve<IMyInterface>();
             Assert.AreEqual(typeof(MyClass), myInterfaceThroughUnity!.GetType());
