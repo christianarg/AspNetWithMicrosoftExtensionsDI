@@ -24,8 +24,7 @@ namespace TestProject1
 
             AssertServiceProviderHasHttpClientFactory(serviceProvider);
 
-            var httpClientThroughUnity = unityContainer.Resolve<IHttpClientFactory>();
-            Assert.IsNotNull(httpClientThroughUnity);
+            AssertUnityHasHttpClientFactory(unityContainer);
 
             var myInterfaceThroughServiceProvider = serviceProvider.GetService<IMyInterface>();
             Assert.AreEqual(typeof(MyClass), myInterfaceThroughServiceProvider!.GetType());
@@ -35,6 +34,12 @@ namespace TestProject1
 
             var myInterfaceNamedThroughUnity = unityContainer.Resolve<IMyInterface>("paco");
             Assert.AreEqual(typeof(MyClassNamed), myInterfaceNamedThroughUnity!.GetType());
+        }
+
+        private static void AssertUnityHasHttpClientFactory(UnityContainer unityContainer)
+        {
+            var httpClientThroughUnity = unityContainer.Resolve<IHttpClientFactory>();
+            Assert.IsNotNull(httpClientThroughUnity);
         }
 
         private static void AssertServiceProviderHasHttpClientFactory(IServiceProvider serviceProvider)
@@ -62,7 +67,7 @@ namespace TestProject1
             Assert.IsNull(httpClientThroughServiceProvider);    // Al haber llamado al buildserviceprovider ANTES de registrar, esto no se encuentra
 
             var myInterfaceThroughServiceProvider = serviceProvider.GetService<IMyInterface>();
-            Assert.AreEqual(typeof(MyClass), myInterfaceThroughServiceProvider!.GetType()); // Esto si que va, aparentemente si lo llamas después si que conecta Unity > MS.DI
+            Assert.AreEqual(typeof(MyClass), myInterfaceThroughServiceProvider!.GetType()); // Esto sorprendentemente si que va, aparentemente si lo llamas después si que conecta Unity > MS.DI
 
             bool httpClientThroughUnityPeta = false;
             try
