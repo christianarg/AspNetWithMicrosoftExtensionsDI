@@ -136,6 +136,32 @@ namespace TestProject1
             }
             Assert.IsTrue(httpClientThroughUnityPeta);
         }
+
+        [TestMethod]
+        public void ConHostBuilderBidireccional()
+        {
+            var unityContainer = new UnityContainer();
+
+            unityContainer.RegisterType<IMyInterface, MyClass>();
+            unityContainer.RegisterType<IMyInterface, MyClassNamed>("paco");
+
+            var hostBuilder = new HostBuilder()
+                .ConfigureServices(services =>
+                {
+                    services.AddHttpClient();
+                    services.BuildServiceProvider(unityContainer);  // Con esto + UseUnityServiceProvider tenemos la "bidireccionalidad"
+                })
+                .UseUnityServiceProvider(unityContainer);   // Esto aparentemente aplica DI solo en una durección Unity > ServiceProvider. A diferencia de services.BuildServiceProvider(unityContainer) que lo hace en ambas direcciones
+            var host = hostBuilder.Build();
+            var serviceProvider = host.Services;
+            var httpClientFactory = serviceProvider.GetService<IHttpClientFactory>();
+            Assert.IsNotNull(httpClientFactory);
+
+            var myInterfaceThroughServiceProvider = serviceProvider.GetService<IMyInterface>();
+            Assert.AreEqual(typeof(MyClass), myInterfaceThroughServiceProvider!.GetType());
+
+            AssertUnityHasHttpClientFactory(unityContainer);
+        }
     }
 
     public interface IMyInterface
