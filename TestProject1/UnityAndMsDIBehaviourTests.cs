@@ -22,8 +22,7 @@ namespace TestProject1
 
             var serviceProvider = services.BuildServiceProvider(unityContainer);    // Al llamar a esto se hace la "magia". Lo que hay registrado en ServiceProvider lo registra también en Unity y vice versa
 
-            var httpClientThroughServiceProvider = serviceProvider.GetService<IHttpClientFactory>();
-            Assert.IsNotNull(httpClientThroughServiceProvider);
+            AssertServiceProviderHasHttpClientFactory(serviceProvider);
 
             var httpClientThroughUnity = unityContainer.Resolve<IHttpClientFactory>();
             Assert.IsNotNull(httpClientThroughUnity);
@@ -36,6 +35,12 @@ namespace TestProject1
 
             var myInterfaceNamedThroughUnity = unityContainer.Resolve<IMyInterface>("paco");
             Assert.AreEqual(typeof(MyClassNamed), myInterfaceNamedThroughUnity!.GetType());
+        }
+
+        private static void AssertServiceProviderHasHttpClientFactory(IServiceProvider serviceProvider)
+        {
+            var httpClientThroughServiceProvider = serviceProvider.GetService<IHttpClientFactory>();
+            Assert.IsNotNull(httpClientThroughServiceProvider);
         }
 
         /// <summary>
@@ -54,10 +59,10 @@ namespace TestProject1
             services.AddHttpClient();
 
             var httpClientThroughServiceProvider = serviceProvider.GetService<IHttpClientFactory>();
-            Assert.IsNull(httpClientThroughServiceProvider);
+            Assert.IsNull(httpClientThroughServiceProvider);    // Al haber llamado al buildserviceprovider ANTES de registrar, esto no se encuentra
 
             var myInterfaceThroughServiceProvider = serviceProvider.GetService<IMyInterface>();
-            Assert.AreEqual(typeof(MyClass), myInterfaceThroughServiceProvider!.GetType()); // Esto si que va
+            Assert.AreEqual(typeof(MyClass), myInterfaceThroughServiceProvider!.GetType()); // Esto si que va, aparentemente si lo llamas después si que conecta Unity > MS.DI
 
             bool httpClientThroughUnityPeta = false;
             try
@@ -70,6 +75,7 @@ namespace TestProject1
             }
             Assert.IsTrue(httpClientThroughUnityPeta);
 
+            // Test en principio redundantes, lo que registramos por unity pues, lo obtenemos por unity
             var myInterfaceThroughUnity = unityContainer.Resolve<IMyInterface>();
             Assert.AreEqual(typeof(MyClass), myInterfaceThroughUnity!.GetType());
 
@@ -86,8 +92,8 @@ namespace TestProject1
                     services.AddHttpClient();
                 });
             var host = hostBuilder.Build();
-            var httpClientFactory = host.Services.GetService<IHttpClientFactory>();
-            Assert.IsNotNull(httpClientFactory);
+            var serviceProvider = host.Services;
+            AssertServiceProviderHasHttpClientFactory(serviceProvider);
         }
 
         [TestMethod]
