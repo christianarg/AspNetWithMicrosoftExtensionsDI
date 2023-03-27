@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Reflection;
 using Unity;
 using Unity.Microsoft.DependencyInjection;
 
@@ -86,6 +87,60 @@ namespace TestProject1
 
             var myInterfaceNamedThroughUnity = unityContainer.Resolve<IMyInterface>("paco");
             Assert.AreEqual(typeof(MyClassNamed), myInterfaceNamedThroughUnity!.GetType());
+        }
+
+        [TestMethod]
+        public void LifetimeTests()
+        {
+            object GetHandlerValue(HttpClient client)
+            {
+                var fields1 = client.GetType().BaseType!.GetFields(BindingFlags.Public |
+                                                  BindingFlags.NonPublic |
+                                                  BindingFlags.Instance);
+                var handler1 = fields1.Single(x => x.Name == "_handler");
+                var handler1Value = handler1.GetValue(client);
+                return handler1Value!;
+            };
+
+            var unityContainer = new UnityContainer();
+            unityContainer.RegisterType<IMyInterface, MyClass>();
+            unityContainer.RegisterType<IMyInterface, MyClassNamed>("paco");
+
+            var services = new ServiceCollection();
+            services.AddHttpClient();
+
+            var serviceProvider = services.BuildServiceProvider(unityContainer);    // Al llamar a esto se hace la "magia". Lo que hay registrado en ServiceProvider lo registra también en Unity y vice versa
+            
+            // ServiceCollection Behaviour
+            var httpClientThroughServiceProvider1 = serviceProvider.GetService<IHttpClientFactory>();
+            var httpClientThroughServiceProvider2 = serviceProvider.GetService<IHttpClientFactory>();
+            Assert.IsTrue(Object.ReferenceEquals(httpClientThroughServiceProvider1, httpClientThroughServiceProvider2));
+            
+            var client1 = httpClientThroughServiceProvider1!.CreateClient();
+            var handler1Value = GetHandlerValue(client1);
+            var client11 = httpClientThroughServiceProvider1!.CreateClient();
+            var handler11Value = GetHandlerValue(client11);
+            Assert.IsTrue(Object.ReferenceEquals(handler1Value, handler11Value));
+
+            var client2 = httpClientThroughServiceProvider2!.CreateClient();
+            var handler2Value = GetHandlerValue(client2);
+            var client21 = httpClientThroughServiceProvider2!.CreateClient();
+            var handler21Value = GetHandlerValue(client2);
+            Assert.IsTrue(Object.ReferenceEquals(handler1Value, handler11Value));
+
+            //Unity behaviour
+            var httpClientThroughUnity1 = unityContainer.Resolve<IHttpClientFactory>();
+            var httpClientThroughUnity2 = unityContainer.Resolve<IHttpClientFactory>();
+            Assert.IsTrue(Object.ReferenceEquals(httpClientThroughUnity1, httpClientThroughUnity2));
+
+            var clientThroughUnity1 = httpClientThroughUnity1.CreateClient();
+            var handlerUnity1Value = GetHandlerValue(clientThroughUnity1);
+            var clientThroughUnity11 = httpClientThroughUnity1.CreateClient();
+            var handlerUnity11Value = GetHandlerValue(clientThroughUnity11);
+            Assert.IsTrue(Object.ReferenceEquals(handlerUnity1Value, handlerUnity11Value));
+
+            // Check both
+            Assert.IsTrue(Object.ReferenceEquals(handler1Value, handlerUnity1Value));
         }
 
         [TestMethod]
