@@ -125,8 +125,16 @@ namespace TestProject1
             Assert.AreEqual(typeof(MyClass), myInterfaceThroughServiceProvider!.GetType());
 
             // Esta es la parte que no va sin llamar a buildserviceprovider
-            //var httpClientThroughUnity = unityContainer.Resolve<IHttpClientFactory>();
-            //Assert.IsNotNull(httpClientThroughUnity);
+            bool httpClientThroughUnityPeta = false;
+            try
+            {
+                var httpClientThroughUnity = unityContainer.Resolve<IHttpClientFactory>();
+            }
+            catch (Exception)
+            {
+                httpClientThroughUnityPeta = true;
+            }
+            Assert.IsTrue(httpClientThroughUnityPeta);
         }
     }
 
