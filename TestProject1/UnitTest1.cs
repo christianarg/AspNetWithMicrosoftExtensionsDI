@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using Unity;
 using Unity.Microsoft.DependencyInjection;
 
@@ -77,7 +78,7 @@ namespace TestProject1
         }
 
         [TestMethod]
-        public void ConHostBuilder()
+        public void ConHostBuilderBase()
         {
             var hostBuilder = new HostBuilder()
                 .ConfigureServices(services =>
@@ -87,6 +88,30 @@ namespace TestProject1
             var host = hostBuilder.Build();
             var httpClientFactory = host.Services.GetService<IHttpClientFactory>();
             Assert.IsNotNull(httpClientFactory);
+        }
+
+        [TestMethod]
+        public void ConHostBuilder()
+        {
+            var unityContainer = new UnityContainer();
+
+            unityContainer.RegisterType<IMyInterface, MyClass>();
+            unityContainer.RegisterType<IMyInterface, MyClassNamed>("paco");
+
+            var hostBuilder = new HostBuilder()
+                .ConfigureServices(services =>
+                {
+                    services.AddHttpClient();
+                })
+                .UseUnityServiceProvider(unityContainer);
+
+            var host = hostBuilder.Build();
+            var serviceProvider = host.Services;
+            var httpClientFactory = serviceProvider.GetService<IHttpClientFactory>();
+            Assert.IsNotNull(httpClientFactory);
+
+            var myInterfaceThroughServiceProvider = serviceProvider.GetService<IMyInterface>();
+            Assert.AreEqual(typeof(MyClass), myInterfaceThroughServiceProvider!.GetType());
         }
     }
 
