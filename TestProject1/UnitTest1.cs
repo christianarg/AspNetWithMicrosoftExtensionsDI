@@ -103,7 +103,7 @@ namespace TestProject1
                 {
                     services.AddHttpClient();
                 })
-                .UseUnityServiceProvider(unityContainer);
+                .UseUnityServiceProvider(unityContainer);   // Esto aparentemente aplica DI solo en una durección Unity > ServiceProvider. A diferencia de services.BuildServiceProvider(unityContainer) que lo hace en ambas direcciones
 
             var host = hostBuilder.Build();
             var serviceProvider = host.Services;
@@ -112,6 +112,10 @@ namespace TestProject1
 
             var myInterfaceThroughServiceProvider = serviceProvider.GetService<IMyInterface>();
             Assert.AreEqual(typeof(MyClass), myInterfaceThroughServiceProvider!.GetType());
+
+            // Esta es la parte que no va sin llamar a buildserviceprovider
+            //var httpClientThroughUnity = unityContainer.Resolve<IHttpClientFactory>();
+            //Assert.IsNotNull(httpClientThroughUnity);
         }
     }
 
