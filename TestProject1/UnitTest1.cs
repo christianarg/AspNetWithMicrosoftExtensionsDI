@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Unity;
 using Unity.Microsoft.DependencyInjection;
 
@@ -72,6 +74,19 @@ namespace TestProject1
 
             var myInterfaceNamedThroughUnity = unityContainer.Resolve<IMyInterface>("paco");
             Assert.AreEqual(typeof(MyClassNamed), myInterfaceNamedThroughUnity!.GetType());
+        }
+
+        [TestMethod]
+        public void ConHostBuilder()
+        {
+            var hostBuilder = new HostBuilder()
+                .ConfigureServices(services =>
+                {
+                    services.AddHttpClient();
+                });
+            var host = hostBuilder.Build();
+            var httpClientFactory = host.Services.GetService<IHttpClientFactory>();
+            Assert.IsNotNull(httpClientFactory);
         }
     }
 
