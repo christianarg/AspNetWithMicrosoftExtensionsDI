@@ -147,7 +147,7 @@ namespace TestProject1
             var handlerNamedValueThoughUnity = GetHandlerValue(clientNamedThoughUnity);
             Assert.IsFalse(Object.ReferenceEquals(handlerUnity1Value, handlerNamedValueThoughUnity));
 
-            Assert.IsTrue(Object.ReferenceEquals(handlerNamedValue, handlerNamedValueThoughUnity));
+            Assert.IsTrue(Object.ReferenceEquals(handlerNamedValue, handlerNamedValueThoughUnity)); // El namedClient tiene singleton correctamente cuando cuando se resuelve via unity y via servicecollection
 
 
             // Check both
