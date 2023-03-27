@@ -149,7 +149,7 @@ namespace TestProject1
                 .ConfigureServices(services =>
                 {
                     services.AddHttpClient();
-                    services.BuildServiceProvider(unityContainer);  // Con esto + UseUnityServiceProvider tenemos la "bidireccionalidad"
+                    services.BuildServiceProvider(unityContainer);  // Con esto + UseUnityServiceProvider tenemos la "bidireccionalidad". Un poco "de aquella manera" pero bueno. UseUnityServiceProvider debería hacer esto yo creo
                 })
                 .UseUnityServiceProvider(unityContainer);   // Esto aparentemente aplica DI solo en una durección Unity > ServiceProvider. A diferencia de services.BuildServiceProvider(unityContainer) que lo hace en ambas direcciones
             var host = hostBuilder.Build();
