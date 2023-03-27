@@ -139,9 +139,16 @@ namespace TestProject1
 
             var clientThroughUnity1 = httpClientThroughUnity1.CreateClient();
             var handlerUnity1Value = GetHandlerValue(clientThroughUnity1);
-            var clientThroughUnity11 = httpClientThroughUnity1.CreateClient();
-            var handlerUnity11Value = GetHandlerValue(clientThroughUnity11);
-            Assert.IsTrue(Object.ReferenceEquals(handlerUnity1Value, handlerUnity11Value));
+            var clientThroughUnity21 = httpClientThroughUnity2.CreateClient();
+            var handlerUnity21Value = GetHandlerValue(clientThroughUnity21);
+            Assert.IsTrue(Object.ReferenceEquals(handlerUnity1Value, handlerUnity21Value));
+
+            var clientNamedThoughUnity = httpClientThroughServiceProvider2!.CreateClient("someName");  // Cuando decimos que el cliente "es otro" por debajo crea otro handler
+            var handlerNamedValueThoughUnity = GetHandlerValue(clientNamedThoughUnity);
+            Assert.IsFalse(Object.ReferenceEquals(handlerUnity1Value, handlerNamedValueThoughUnity));
+
+            Assert.IsTrue(Object.ReferenceEquals(handlerNamedValue, handlerNamedValueThoughUnity));
+
 
             // Check both
             Assert.IsTrue(Object.ReferenceEquals(handler1Value, handlerUnity1Value));
